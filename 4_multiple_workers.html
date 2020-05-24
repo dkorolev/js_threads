@@ -1,0 +1,54 @@
+<html lang="en">
+<head><meta charset="utf-8"/></head>
+<body>
+  <h2>Number of primes between 1 to 1M</h2>
+  <div id="result"><i>JavaScript in action...</i></div>
+  <script>
+    var run = function(a, b) {
+      var test = function(x) {
+        var z = Math.floor(Math.sqrt(x) + 1e-9);
+        for (var i = 3; i <= z; ++i) {
+          if (!(x % i)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      var t1 = new Date();
+      var n = 0;
+      if (!(a % 2)) {
+        ++a;
+      }
+      for (var i = a; i < b; i += 2) {
+        if (test(i)) {
+          ++n;
+        }
+      }
+      var t2 = new Date();
+      postMessage({ n: n, ms: (t2 - t1) });
+    };
+    var workers = 16;
+    var overall = { done: 0, n: 1, ms: 0, total_ms: 0 };
+    var handler = function(result) {
+      overall.n += result.data.n;
+      overall.ms = Math.max(overall.ms, result.data.ms);
+      overall.total_ms += result.data.ms;
+      ++overall.done;
+      if (overall.done == workers) {
+        document.getElementById("result").innerText =
+          "In " + workers + " workers: " + overall.n + ", computed in " +
+          overall.ms + "ms wall time, " + overall.total_ms + "ms total CPU.";
+      }
+    };
+    var spawn = function(a, b) {
+      (new Worker(URL.createObjectURL(new Blob(["("+run.toString()+")(" + a + "," + b + ")"],
+                                               {type: "text/javascript"})))).onmessage = handler;
+    };
+    var a = 3;
+    var b = 1e6;
+    for (var i = 0; i < workers; ++i) {
+      spawn(Math.floor(a + (b - a) * i / workers), Math.floor(a + (b - a) * (i + 1) / workers));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+<html lang="en">
+<head><meta charset="utf-8"/></head>
+<body>
+  <h2>Number of primes between 1 to 1M</h2>
+  <div id="result"><i>JavaScript in action...</i></div>
+  <script>
+    var run = function() {
+      var test = function(x) {
+        var z = Math.floor(Math.sqrt(x) + 1e-9);
+        for (var i = 3; i <= z; ++i) {
+          if (!(x % i)) {
+            return false;
+          }
+        }
+        return true;
+      };
+      var t1 = new Date();
+      var n = 1;
+      for (var i = 3; i <= 1e6; i += 2) {
+        if (test(i)) {
+          ++n;
+        }
+      }
+      var t2 = new Date();
+      postMessage({ n: n, ms: (t2 - t1) });
+    };
+    var w = new Worker(URL.createObjectURL(new Blob(["("+run.toString()+")()"],
+                                                    {type: "text/javascript"})));
+    w.onmessage = function(result) {
+      document.getElementById("result").innerText =
+        result.data.n + ", computed in " + result.data.ms + "ms.";
+    };
+  </script>
+</body>
+</html>
